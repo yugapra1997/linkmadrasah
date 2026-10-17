@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survei Pembatasan Penggunaan HP - MAN 3 Indramayu</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-full flex flex-col text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-brand-700 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-brand-700/20">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">MAN 3 Indramayu</h1>
+                    <p class="text-xs text-slate-500 font-medium">Survei Pembatasan Penggunaan HP</p>
+                </div>
+            </div>
+
+            <div id="headerActions">
+                <button onclick="openAdminModal()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-brand-700 bg-slate-100 hover:bg-brand-50 transition border border-slate-200">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span class="hidden sm:inline">Menu Admin</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        
+        <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm transition-all duration-300">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-brand-500 text-lg"></i>
+            <span id="toastMessage">Pesan Notifikasi</span>
+        </div>
+
+        <div id="surveyCard" class="bg-white rounded-2xl border border-slate-200/80 shadow-xl shadow-slate-200/50 overflow-hidden">
+            
+            <div class="bg-gradient-to-r from-brand-900 via-brand-800 to-brand-700 px-6 sm:px-8 py-8 text-white relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="relative z-10">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 text-brand-100 backdrop-blur-md mb-3 border border-white/10">
+                        <i class="fa-solid fa-clipboard-list text-xs"></i> Form Kuesioner Responden
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Pembatasan Penggunaan HP</h2>
+                    <p class="text-slate-200 text-xs sm:text-sm mt-2 max-w-2xl leading-relaxed">
+                        Mohon isi formulir ini secara jujur dan obyektif. Masukan Anda sangat berharga untuk perancangan kebijakan penggunaan gawai di lingkungan MAN 3 Indramayu.
+                    </p>
+                </div>
+
+                <div class="mt-6 flex items-center gap-3">
+                    <div class="flex-1 bg-white/20 h-2 rounded-full overflow-hidden">
+                        <div id="progressBar" class="bg-brand-500 h-full w-1/2 transition-all duration-500"></div>
+                    </div>
+                    <span id="stepBadge" class="text-xs font-semibold text-brand-100">Langkah 1 dari 2</span>
+                </div>
+            </div>
+
+            <form id="hpSurveyForm" onsubmit="handleFormSubmit(event)" class="p-6 sm:p-8">
+                
+                <div id="layer1" class="space-y-6">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-extrabold">1</span>
+                            Identitas Responden
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Lengkapi data diri Anda sebelum mengisi pertanyaan kuesioner.</p>
+                    </div>
+
+                    <div>
+                        <label for="namaLengkap" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Nama Lengkap <span class="text-rose-500">* (Wajib)</span>
+                        </label>
+                        <input type="text" id="namaLengkap" required
+                            placeholder="Masukkan nama lengkap Anda"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 outline-none text-slate-800 text-sm transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Jenis Responden <span class="text-rose-500">* (Wajib)</span>
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="relative flex items-center p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition [&:has(:checked)]:border-brand-600 [&:has(:checked)]:bg-brand-50/50 [&:has(:checked)]:ring-2 [&:has(:checked)]:ring-brand-500/20">
+                                <input type="radio" name="jenisResponden" value="Siswa" required onchange="handleJenisRespondenChange(this.value)" class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300">
+                                <span class="ml-3 text-sm font-medium text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-graduation-cap text-slate-400"></i> Siswa
+                                </span>
+                            </label>
+
+                            <label class="relative flex items-center p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition [&:has(:checked)]:border-brand-600 [&:has(:checked)]:bg-brand-50/50 [&:has(:checked)]:ring-2 [&:has(:checked)]:ring-brand-500/20">
+                                <input type="radio" name="jenisResponden" value="Orang tua/wali siswa" required onchange="handleJenisRespondenChange(this.value)" class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300">
+                                <span class="ml-3 text-sm font-medium text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-users text-slate-400"></i> Orang tua/wali
+                                </span>
+                            </label>
+
+                            <label class="relative flex items-center p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition [&:has(:checked)]:border-brand-600 [&:has(:checked)]:bg-brand-50/50 [&:has(:checked)]:ring-2 [&:has(:checked)]:ring-brand-500/20">
+                                <input type="radio" name="jenisResponden" value="Guru" required onchange="handleJenisRespondenChange(this.value)" class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300">
+                                <span class="ml-3 text-sm font-medium text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-chalkboard-user text-slate-400"></i> Guru
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="dynamicFieldContainer" class="hidden transition-all duration-300 pt-2">
+                        <!-- Dynamic content loaded via JS -->
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex justify-end">
+                        <button type="button" onclick="goToLayer(2)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-semibold text-sm transition shadow-lg shadow-brand-700/20">
+                            Lanjut ke Pertanyaan Survei <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="layer2" class="hidden space-y-8">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-extrabold">2</span>
+                            Pendapat tentang Rencana Pembatasan HP
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Seluruh pertanyaan nomor 1 s.d. 7 wajib diisi secara obyektif.</p>
+                    </div>
+
+                    <!-- Q1 -->
+                    <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
+                        <p class="text-sm font-semibold text-slate-800">
+                            1. Apakah Anda mengetahui rencana pembatasan penggunaan HP di madrasah? <span class="text-rose-500">* (Wajib)</span>
+                        </p>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                <input type="radio" name="q1_mengetahui" value="Ya" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span>Ya</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                <input type="radio" name="q1_mengetahui" value="Belum" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span>Belum</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="p-4 rounded-xl bg-brand-50/30 border border-brand-200 space-y-3">
+                        <p class="text-sm font-semibold text-slate-800">
+                            2. Apakah Anda setuju dengan rencana pembatasan penggunaan HP di MAN 3 Indramayu? <span class="text-rose-500">* (Wajib)</span>
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q2_setuju" value="Sangat setuju" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Sangat setuju</span>
+                            </label>
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q2_setuju" value="Setuju" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Setuju</span>
+                            </label>
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q2_setuju" value="Kurang setuju" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Kurang setuju</span>
+                            </label>
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q2_setuju" value="Tidak setuju" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Tidak setuju</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
+                        <p class="text-sm font-semibold text-slate-800">
+                            3. Menurut Anda, apakah pembatasan HP dapat meningkatkan konsentrasi belajar siswa? <span class="text-rose-500">* (Wajib)</span>
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q3_konsentrasi" value="Sangat dapat" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Sangat dapat</span>
+                            </label>
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q3_konsentrasi" value="Dapat" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Dapat</span>
+                            </label>
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q3_konsentrasi" value="Kurang dapat" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Kurang dapat</span>
+                            </label>
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q3_konsentrasi" value="Tidak dapat" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Tidak dapat</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q4 -->
+                    <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
+                        <p class="text-sm font-semibold text-slate-800">
+                            4. Bagaimana sebaiknya aturan penggunaan HP diterapkan? <span class="text-rose-500">* (Wajib)</span>
+                        </p>
+                        <div class="space-y-2.5">
+                            <label class="flex items-start p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm text-slate-700">
+                                <input type="radio" name="q4_aturan" value="HP tidak digunakan selama di madrasah, kecuali atas izin atau untuk keadaan darurat" required class="w-4 h-4 mt-0.5 text-brand-600 focus:ring-brand-500 shrink-0">
+                                <span class="ml-2.5 leading-snug">HP tidak digunakan selama di madrasah, kecuali atas izin atau untuk keadaan darurat</span>
+                            </label>
+                            <label class="flex items-start p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm text-slate-700">
+                                <input type="radio" name="q4_aturan" value="HP boleh digunakan saat pembelajaran atas instruksi guru" required class="w-4 h-4 mt-0.5 text-brand-600 focus:ring-brand-500 shrink-0">
+                                <span class="ml-2.5 leading-snug">HP boleh digunakan saat pembelajaran atas instruksi guru</span>
+                            </label>
+                            <label class="flex items-start p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm text-slate-700">
+                                <input type="radio" name="q4_aturan" value="HP boleh digunakan pada waktu istirahat" required class="w-4 h-4 mt-0.5 text-brand-600 focus:ring-brand-500 shrink-0">
+                                <span class="ml-2.5 leading-snug">HP boleh digunakan pada waktu istirahat</span>
+                            </label>
+                            <label class="flex items-start p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm text-slate-700">
+                                <input type="radio" name="q4_aturan" value="Penggunaan HP tetap bebas dengan pengawasan" required class="w-4 h-4 mt-0.5 text-brand-600 focus:ring-brand-500 shrink-0">
+                                <span class="ml-2.5 leading-snug">Penggunaan HP tetap bebas dengan pengawasan</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q5 -->
+                    <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
+                        <p class="text-sm font-semibold text-slate-800">
+                            5. Apakah Anda mendukung penggunaan HP untuk pembelajaran jika diinstruksikan oleh guru? <span class="text-rose-500">* (Wajib)</span>
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q5_pembelajaran" value="Sangat mendukung" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Sangat mendukung</span>
+                            </label>
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q5_pembelajaran" value="Mendukung" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Mendukung</span>
+                            </label>
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q5_pembelajaran" value="Kurang mendukung" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Kurang mendukung</span>
+                            </label>
+                            <label class="flex items-center p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
+                                <input type="radio" name="q5_pembelajaran" value="Tidak mendukung" required class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                <span class="ml-2.5">Tidak mendukung</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q6 Checkboxes -->
+                    <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
+                        <p class="text-sm font-semibold text-slate-800">
+                            6. Menurut Anda, apa manfaat utama pembatasan HP? <span class="text-rose-500">* (Wajib - Pilih minimal 1)</span>
+                        </p>
+                        <div class="space-y-2">
+                            <label class="flex items-center text-sm text-slate-700 cursor-pointer">
+                                <input type="checkbox" name="q6_manfaat" value="Meningkatkan konsentrasi belajar" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                                <span class="ml-2.5">Meningkatkan konsentrasi belajar</span>
+                            </label>
+                            <label class="flex items-center text-sm text-slate-700 cursor-pointer">
+                                <input type="checkbox" name="q6_manfaat" value="Meningkatkan kedisiplinan siswa" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                                <span class="ml-2.5">Meningkatkan kedisiplinan siswa</span>
+                            </label>
+                            <label class="flex items-center text-sm text-slate-700 cursor-pointer">
+                                <input type="checkbox" name="q6_manfaat" value="Mengurangi kecanduan HP" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                                <span class="ml-2.5">Mengurangi kecanduan HP</span>
+                            </label>
+                            <label class="flex items-center text-sm text-slate-700 cursor-pointer">
+                                <input type="checkbox" name="q6_manfaat" value="Mencegah perundungan dan konten negatif" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                                <span class="ml-2.5">Mencegah perundungan dan konten negatif</span>
+                            </label>
+                            <label class="flex items-center text-sm text-slate-700 cursor-pointer">
+                                <input type="checkbox" name="q6_manfaat" value="Meningkatkan interaksi sosial antarsiswa" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                                <span class="ml-2.5">Meningkatkan interaksi sosial antarsiswa</span>
+                            </label>
+                            <div class="flex items-center gap-2 pt-1">
+                                <label class="flex items-center text-sm text-slate-700 cursor-pointer shrink-0">
+                                    <input type="checkbox" id="q6_lainnya_check" onchange="toggleLainnyaInput('q6_lainnya_check', 'q6_lainnya_text')" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                                    <span class="ml-2.5">Lainnya:</span>
+                                </label>
+                                <input type="text" id="q6_lainnya_text" disabled placeholder="Tuliskan manfaat lainnya..." class="flex-1 text-xs px-3 py-1.5 rounded-lg border border-slate-300 focus:border-brand-600 outline-none disabled:bg-slate-100 disabled:text-slate-400">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q7 -->
+                    <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
+                        <p class="text-sm font-semibold text-slate-800">
+                            7. Apa kekhawatiran atau kendala yang mungkin muncul dari pembatasan HP? <span class="text-rose-500">* (Wajib)</span>
+                        </p>
+                        <div class="space-y-2.5">
+                            <label class="flex items-start p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm text-slate-700">
+                                <input type="radio" name="q7_kendala" value="Kesulitan menghubungi keluarga dalam keadaan darurat" required class="w-4 h-4 mt-0.5 text-brand-600 focus:ring-brand-500 shrink-0">
+                                <span class="ml-2.5 leading-snug">Kesulitan menghubungi keluarga dalam keadaan darurat</span>
+                            </label>
+                            <label class="flex items-start p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm text-slate-700">
+                                <input type="radio" name="q7_kendala" value="Kesulitan mengakses sumber belajar digital" required class="w-4 h-4 mt-0.5 text-brand-600 focus:ring-brand-500 shrink-0">
+                                <span class="ml-2.5 leading-snug">Kesulitan mengakses sumber belajar digital</span>
+                            </label>
+                            <label class="flex items-start p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm text-slate-700">
+                                <input type="radio" name="q7_kendala" value="Siswa merasa kurang nyaman" required class="w-4 h-4 mt-0.5 text-brand-600 focus:ring-brand-500 shrink-0">
+                                <span class="ml-2.5 leading-snug">Siswa merasa kurang nyaman</span>
+                            </label>
+                            <label class="flex items-start p-3 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-slate-50 text-sm text-slate-700">
+                                <input type="radio" name="q7_kendala" value="Tidak ada kendala berarti" required class="w-4 h-4 mt-0.5 text-brand-600 focus:ring-brand-500 shrink-0">
+                                <span class="ml-2.5 leading-snug">Tidak ada kendala berarti</span>
+                            </label>
+                            <div class="p-3 rounded-lg bg-white border border-slate-200 flex items-center gap-2">
+                                <input type="radio" name="q7_kendala" value="Lainnya" id="q7_lainnya_radio" required onchange="toggleRadioLainnyaText('q7_lainnya_text', true)" class="w-4 h-4 text-brand-600 focus:ring-brand-500 shrink-0">
+                                <label for="q7_lainnya_radio" class="text-sm text-slate-700 shrink-0">Lainnya:</label>
+                                <input type="text" id="q7_lainnya_text" onfocus="document.getElementById('q7_lainnya_radio').checked=true" placeholder="Tulis kendala lainnya..." class="flex-1 text-xs px-3 py-1.5 rounded-lg border border-slate-300 focus:border-brand-600 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q8 Paragraph -->
+                    <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
+                        <label for="q8_saran" class="block text-sm font-semibold text-slate-800">
+                            8. Apa saran Anda untuk penerapan kebijakan pembatasan HP di MAN 3 Indramayu? <span class="text-xs font-normal text-slate-500">(Opsional)</span>
+                        </label>
+                        <textarea id="q8_saran" rows="3" placeholder="Tuliskan saran atau masukan Anda di sini..." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 outline-none text-slate-800 text-sm transition"></textarea>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-between gap-3">
+                        <button type="button" onclick="goToLayer(1)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold text-sm transition">
+                            <i class="fa-solid fa-arrow-left text-xs"></i> Kembali
+                        </button>
+                        <button type="submit" id="submitBtn" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-semibold text-sm transition shadow-lg shadow-brand-700/20">
+                            <i class="fa-solid fa-paper-plane text-xs"></i> Kirim Tanggapan
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <div id="successCard" class="hidden bg-white rounded-2xl border border-slate-200 shadow-xl p-8 text-center space-y-5 max-w-lg mx-auto">
+            <div class="w-16 h-16 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900">Terima Kasih!</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">
+                Tanggapan Anda telah berhasil tersimpan secara terenkripsi di database server. Partisipasi Anda sangat berharga untuk <span class="font-semibold text-slate-800">MAN 3 Indramayu</span>.
+            </p>
+            <div class="pt-2 flex flex-col gap-2">
+                <button onclick="resetFormToNewSubmit()" class="w-full py-2.5 px-4 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-sm font-semibold transition">
+                    Isi Tanggapan Lainnya
+                </button>
+            </div>
+        </div>
+
+        <div id="adminDashboard" class="hidden space-y-6">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-100 text-brand-800">Panel Administrator</span>
+                        <span id="liveStatusBadge" class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Real-time Sync
+                        </span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">Rekapan Survei Pembatasan HP</h2>
+                    <p class="text-xs text-slate-500">MAN 3 Indramayu — Pemantauan & Analisis Data</p>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button onclick="downloadExcelReport()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm">
+                        <i class="fa-solid fa-file-excel text-base"></i> Download Excel (.xlsx)
+                    </button>
+                    <button onclick="closeAdminView()" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition">
+                        <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500">Total Responden</p>
+                        <h4 id="statTotal" class="text-2xl font-extrabold text-slate-900 mt-1">0</h4>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500">Siswa</p>
+                        <h4 id="statSiswa" class="text-2xl font-extrabold text-blue-600 mt-1">0</h4>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500">Orang Tua / Wali</p>
+                        <h4 id="statOrangTua" class="text-2xl font-extrabold text-purple-600 mt-1">0</h4>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-user-group"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500">Guru</p>
+                        <h4 id="statGuru" class="text-2xl font-extrabold text-amber-600 mt-1">0</h4>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">1. Distribusi Unsur Responden</h3>
+                                <p class="text-xs text-slate-500">Komposisi Siswa, Orang Tua, dan Guru</p>
+                            </div>
+                            <span class="text-xs font-medium px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md">Real-time</span>
+                        </div>
+                        <div class="relative h-64 w-full flex items-center justify-center">
+                            <canvas id="chartResponden"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">2. Tingkat Persetujuan Rencana</h3>
+                                <p class="text-xs text-slate-500">Hasil isian: "Apakah Anda setuju dengan rencana pembatasan HP?"</p>
+                            </div>
+                            <span class="text-xs font-medium px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md">Real-time</span>
+                        </div>
+                        <div class="relative h-64 w-full flex items-center justify-center">
+                            <canvas id="chartSetuju"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Daftar Tanggapan Responden</h3>
+                        <p class="text-xs text-slate-500">Seluruh entri jawaban tersimpan</p>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="tableSearch" onkeyup="filterTable()" placeholder="Cari nama atau kelas..." class="text-xs px-3 py-2 pl-8 rounded-lg border border-slate-300 focus:border-brand-600 outline-none w-full sm:w-56">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-2.5 top-3"></i>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left text-xs text-slate-700">
+                        <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3">No</th>
+                                <th class="px-4 py-3">Waktu</th>
+                                <th class="px-4 py-3">Nama Lengkap</th>
+                                <th class="px-4 py-3">Jenis</th>
+                                <th class="px-4 py-3">Kelas / Detail</th>
+                                <th class="px-4 py-3">Setuju Kebijakan</th>
+                                <th class="px-4 py-3">Aturan Diinginkan</th>
+                                <th class="px-4 py-3">Saran</th>
+                            </tr>
+                        </thead>
+                        <tbody id="responseTableBody" class="divide-y divide-slate-100">
+                            <!-- JS Populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="adminModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
+            <div class="p-6 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-brand-500"></i>
+                    <h3 class="font-bold text-base">Login Admin</h3>
+                </div>
+                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-white transition text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="handleAdminLogin(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Username</label>
+                    <input type="text" id="adminUser" required placeholder="Masukkan username" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-brand-600 text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                    <input type="password" id="adminPass" required placeholder="Masukkan password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-brand-600 text-sm outline-none">
+                </div>
+                <div id="loginErrorMsg" class="hidden text-xs text-rose-600 font-medium bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+                    Username atau password salah!
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-brand-700 hover:bg-brand-800 text-white font-semibold text-sm rounded-xl transition shadow-md">
+                    Masuk Panel Admin
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let db = null;
+        let auth = null;
+        let responsesData = [];
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'man3-hp-survey';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-key",
+            authDomain: "demo.firebaseapp.com",
+            projectId: "demo-project",
+            storageBucket: "demo.appspot.com",
+            messagingSenderId: "1234567",
+            appId: "1:1234567:web:1234"
+        };
+
+        async function initFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                setupRealtimeListener();
+            } catch (err) {
+                console.warn("Firestore connection fallback mode active:", err);
+                loadLocalFallbackData();
+            }
+        }
+
+        function setupRealtimeListener() {
+            if (!db) return;
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'hp_survey_responses');
+            
+            onSnapshot(colRef, (snapshot) => {
+                const loaded = [];
+                snapshot.forEach(doc => {
+                    loaded.push({ id: doc.id, ...doc.data() });
+                });
+
+                loaded.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                    const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                    return dateB - dateA;
+                });
+
+                responsesData = loaded;
+                if (window.updateAdminDashboardUI) {
+                    window.updateAdminDashboardUI();
+                }
+            }, (error) => {
+                console.error("Firestore listener error:", error);
+                loadLocalFallbackData();
+            });
+        }
+
+        function loadLocalFallbackData() {
+            const stored = localStorage.getItem('man3_hp_survey_responses');
+            if (stored) {
+                try { responsesData = JSON.parse(stored); } catch(e){}
+            } else {
+                responsesData = [
+                    {
+                        nama: "M. Rizky Pratama",
+                        jenisResponden: "Siswa",
+                        detailIdentitas: "XI-1",
+                        q1_mengetahui: "Ya",
+                        q2_setuju: "Sangat setuju",
+                        q3_konsentrasi: "Sangat dapat",
+                        q4_aturan: "HP tidak digunakan selama di madrasah, kecuali atas izin atau untuk keadaan darurat",
+                        q5_pembelajaran: "Sangat mendukung",
+                        q6_manfaat: ["Meningkatkan konsentrasi belajar", "Meningkatkan kedisiplinan siswa"],
+                        q7_kendala: "Tidak ada kendala berarti",
+                        q8_saran: "Bagus sekali agar siswa fokus saat KBM.",
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        nama: "Hj. Siti Aminah, S.Pd.",
+                        jenisResponden: "Guru",
+                        detailIdentitas: "Guru Matematika / Wali Kelas X-2",
+                        q1_mengetahui: "Ya",
+                        q2_setuju: "Setuju",
+                        q3_konsentrasi: "Dapat",
+                        q4_aturan: "HP boleh digunakan saat pembelajaran atas instruksi guru",
+                        q5_pembelajaran: "Mendukung",
+                        q6_manfaat: ["Meningkatkan kedisiplinan siswa", "Mengurangi kecanduan HP"],
+                        q7_kendala: "Kesulitan mengakses sumber belajar digital",
+                        q8_saran: "Perlu disiapkan komputer perpustakaan yang cukup.",
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        nama: "Budi Santoso",
+                        jenisResponden: "Orang tua/wali siswa",
+                        detailIdentitas: "Orang tua dari Ahmad XI-2",
+                        q1_mengetahui: "Belum",
+                        q2_setuju: "Setuju",
+                        q3_konsentrasi: "Dapat",
+                        q4_aturan: "HP tidak digunakan selama di madrasah, kecuali atas izin atau untuk keadaan darurat",
+                        q5_pembelajaran: "Mendukung",
+                        q6_manfaat: ["Meningkatkan konsentrasi belajar", "Mencegah perundungan dan konten negatif"],
+                        q7_kendala: "Kesulitan menghubungi keluarga dalam keadaan darurat",
+                        q8_saran: "Disediakan nomor layanan khusus madrasah untuk pesan darurat.",
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                localStorage.setItem('man3_hp_survey_responses', JSON.stringify(responsesData));
+            }
+            if (window.updateAdminDashboardUI) {
+                window.updateAdminDashboardUI();
+            }
+        }
+
+        window.saveSurveyResponse = async function(formData) {
+            formData.createdAt = new Date().toISOString();
+
+            if (db) {
+                try {
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'hp_survey_responses');
+                    await addDoc(colRef, {
+                        ...formData,
+                        createdAt: serverTimestamp()
+                    });
+                    return;
+                } catch (e) {
+                    console.warn("Failed to write to Firestore, storing locally", e);
+                }
+            }
+
+            responsesData.unshift(formData);
+            localStorage.setItem('man3_hp_survey_responses', JSON.stringify(responsesData));
+            if (window.updateAdminDashboardUI) {
+                window.updateAdminDashboardUI();
+            }
+        };
+
+        window.getResponsesData = () => responsesData;
+
+        initFirebase();
+    </script>
+
+    <script>
+        
+        function handleJenisRespondenChange(value) {
+            const container = document.getElementById('dynamicFieldContainer');
+            container.classList.remove('hidden');
+
+            if (value === 'Siswa') {
+                container.innerHTML = `
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Pilih Kelas <span class="text-rose-500">* (Wajib)</span>
+                    </label>
+                    <select id="detailIdentitas" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 outline-none text-slate-800 text-sm transition">
+                        <option value="">-- Pilih Kelas --</option>
+                        <option value="X-1">X-1</option>
+                        <option value="X-2">X-2</option>
+                        <option value="XI-1">XI-1</option>
+                        <option value="XI-2">XI-2</option>
+                        <option value="XII-1">XII-1</option>
+                        <option value="XII-2">XII-2</option>
+                    </select>
+                `;
+            } else if (value === 'Orang tua/wali siswa') {
+                container.innerHTML = `
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Orang tua dari: <span class="text-rose-500">* (Wajib)</span>
+                    </label>
+                    <input type="text" id="detailIdentitas" required
+                        placeholder="Contoh: Ahmad Kelas XI-1"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 outline-none text-slate-800 text-sm transition">
+                `;
+            } else if (value === 'Guru') {
+                container.innerHTML = `
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        Jabatan <span class="text-rose-500">* (Wajib)</span>
+                    </label>
+                    <input type="text" id="detailIdentitas" required
+                        placeholder="Contoh: Guru Matematika / BK"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 outline-none text-slate-800 text-sm transition">
+                `;
+            }
+        }
+
+        function goToLayer(step) {
+            const nama = document.getElementById('namaLengkap').value.trim();
+            const jenisEl = document.querySelector('input[name="jenisResponden"]:checked');
+            const detailEl = document.getElementById('detailIdentitas');
+
+            if (step === 2) {
+                if (!nama) {
+                    showToast("Harap isi Nama Lengkap terlebih dahulu!", "error");
+                    document.getElementById('namaLengkap').focus();
+                    return;
+                }
+                if (!jenisEl) {
+                    showToast("Harap pilih Jenis Responden!", "error");
+                    return;
+                }
+                if (!detailEl || !detailEl.value.trim()) {
+                    showToast("Harap lengkapi detail kelas/jabatan/orang tua dari!", "error");
+                    if (detailEl) detailEl.focus();
+                    return;
+                }
+
+                document.getElementById('layer1').classList.add('hidden');
+                document.getElementById('layer2').classList.remove('hidden');
+                document.getElementById('progressBar').style.width = '100%';
+                document.getElementById('stepBadge').innerText = 'Langkah 2 dari 2';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                document.getElementById('layer2').classList.add('hidden');
+                document.getElementById('layer1').classList.remove('hidden');
+                document.getElementById('progressBar').style.width = '50%';
+                document.getElementById('stepBadge').innerText = 'Langkah 1 dari 2';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function toggleLainnyaInput(checkboxId, textInputId) {
+            const cb = document.getElementById(checkboxId);
+            const text = document.getElementById(textInputId);
+            text.disabled = !cb.checked;
+            if (cb.checked) text.focus();
+        }
+
+        function toggleRadioLainnyaText(inputId, enable) {
+            const text = document.getElementById(inputId);
+            if (enable) text.focus();
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const nama = document.getElementById('namaLengkap').value.trim();
+            const jenisResponden = document.querySelector('input[name="jenisResponden"]:checked').value;
+            const detailIdentitas = document.getElementById('detailIdentitas').value.trim();
+
+            const q1_mengetahui = document.querySelector('input[name="q1_mengetahui"]:checked')?.value;
+            const q2_setuju = document.querySelector('input[name="q2_setuju"]:checked')?.value;
+            const q3_konsentrasi = document.querySelector('input[name="q3_konsentrasi"]:checked')?.value;
+            const q4_aturan = document.querySelector('input[name="q4_aturan"]:checked')?.value;
+            const q5_pembelajaran = document.querySelector('input[name="q5_pembelajaran"]:checked')?.value;
+
+            // Q6 Checkboxes
+            const q6_selected = Array.from(document.querySelectorAll('input[name="q6_manfaat"]:checked')).map(el => el.value);
+            const q6_lainnya = document.getElementById('q6_lainnya_check').checked ? document.getElementById('q6_lainnya_text').value.trim() : '';
+            if (q6_lainnya) q6_selected.push(`Lainnya: ${q6_lainnya}`);
+
+            if (q6_selected.length === 0) {
+                showToast("Harap pilih minimal 1 manfaat pada pertanyaan nomor 6!", "error");
+                return;
+            }
+
+            // Q7 Kendala
+            let q7_kendala = document.querySelector('input[name="q7_kendala"]:checked')?.value;
+            if (q7_kendala === 'Lainnya') {
+                const q7_text = document.getElementById('q7_lainnya_text').value.trim();
+                q7_kendala = q7_text ? `Lainnya: ${q7_text}` : 'Lainnya';
+            }
+
+            if (!q1_mengetahui || !q2_setuju || !q3_konsentrasi || !q4_aturan || !q5_pembelajaran || !q7_kendala) {
+                showToast("Harap isi seluruh pertanyaan wajib (1 sampai 7)!", "error");
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...`;
+
+            // Q8 Saran (Opsional)
+            const q8_saran = document.getElementById('q8_saran').value.trim();
+
+            const responsePayload = {
+                nama,
+                jenisResponden,
+                detailIdentitas,
+                q1_mengetahui,
+                q2_setuju,
+                q3_konsentrasi,
+                q4_aturan,
+                q5_pembelajaran,
+                q6_manfaat: q6_selected,
+                q7_kendala,
+                q8_saran
+            };
+
+            try {
+                if (window.saveSurveyResponse) {
+                    await window.saveSurveyResponse(responsePayload);
+                }
+                showToast("Tanggapan berhasil dikirim!", "success");
+                
+                document.getElementById('surveyCard').classList.add('hidden');
+                document.getElementById('successCard').classList.remove('hidden');
+            } catch (err) {
+                showToast("Terjadi kesalahan saat menyimpan tanggapan.", "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> Kirim Tanggapan`;
+            }
+        }
+
+        function resetFormToNewSubmit() {
+            document.getElementById('hpSurveyForm').reset();
+            document.getElementById('dynamicFieldContainer').classList.add('hidden');
+            document.getElementById('dynamicFieldContainer').innerHTML = '';
+            goToLayer(1);
+            document.getElementById('successCard').classList.add('hidden');
+            document.getElementById('surveyCard').classList.remove('hidden');
+        }
+
+        function openAdminModal() {
+            document.getElementById('adminModal').classList.remove('hidden');
+            document.getElementById('loginErrorMsg').classList.add('hidden');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('adminUser').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+
+            if (user === 'admin' && pass === 'Yuga1234') {
+                closeAdminModal();
+                document.getElementById('surveyCard').classList.add('hidden');
+                document.getElementById('successCard').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                showToast("Berhasil masuk sebagai Admin", "success");
+                window.updateAdminDashboardUI();
+            } else {
+                document.getElementById('loginErrorMsg').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminView() {
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('surveyCard').classList.remove('hidden');
+            showToast("Keluar dari panel admin.", "info");
+        }
+
+        window.updateAdminDashboardUI = function() {
+            const data = window.getResponsesData ? window.getResponsesData() : [];
+
+            const total = data.length;
+            const siswa = data.filter(d => d.jenisResponden === 'Siswa').length;
+            const orangTua = data.filter(d => d.jenisResponden === 'Orang tua/wali siswa').length;
+            const guru = data.filter(d => d.jenisResponden === 'Guru').length;
+
+            const statTotal = document.getElementById('statTotal');
+            if (statTotal) statTotal.innerText = total;
+            const statSiswa = document.getElementById('statSiswa');
+            if (statSiswa) statSiswa.innerText = siswa;
+            const statOrangTua = document.getElementById('statOrangTua');
+            if (statOrangTua) statOrangTua.innerText = orangTua;
+            const statGuru = document.getElementById('statGuru');
+            if (statGuru) statGuru.innerText = guru;
+
+            const sangAree = data.filter(d => d.q2_setuju === 'Sangat setuju').length;
+            const agree = data.filter(d => d.q2_setuju === 'Setuju').length;
+            const disagree = data.filter(d => d.q2_setuju === 'Kurang setuju').length;
+            const strDisagree = data.filter(d => d.q2_setuju === 'Tidak setuju').length;
+
+            renderRespondenChart(siswa, orangTua, guru);
+            renderSetujuChart(sangAree, agree, disagree, strDisagree);
+            renderTableBody(data);
+        };
+
+        function renderRespondenChart(siswa, orangTua, guru) {
+            const ctx = document.getElementById('chartResponden');
+            if (!ctx) return;
+
+            if (window.respondenChartInstance) {
+                window.respondenChartInstance.destroy();
+            }
+
+            window.respondenChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Siswa', 'Orang Tua/Wali', 'Guru'],
+                    datasets: [{
+                        data: [siswa, orangTua, guru],
+                        backgroundColor: ['#2563eb', '#9333ea', '#d97706'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: 'Plus Jakarta Sans', size: 12 },
+                                padding: 16
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderSetujuChart(sA, A, DA, sDA) {
+            const ctx = document.getElementById('chartSetuju');
+            if (!ctx) return;
+
+            if (window.setujuChartInstance) {
+                window.setujuChartInstance.destroy();
+            }
+
+            window.setujuChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Sangat setuju', 'Setuju', 'Kurang setuju', 'Tidak setuju'],
+                    datasets: [{
+                        label: 'Jumlah Responden',
+                        data: [sA, A, DA, sDA],
+                        backgroundColor: ['#16a34a', '#22c55e', '#f59e0b', '#ef4444'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTableBody(data) {
+            const tbody = document.getElementById('responseTableBody');
+            if (!tbody) return;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-6 text-slate-400">Belum ada data tanggapan yang masuk.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map((row, idx) => {
+                let badgeColor = 'bg-slate-100 text-slate-700';
+                if (row.jenisResponden === 'Siswa') badgeColor = 'bg-blue-50 text-blue-700 border border-blue-200';
+                if (row.jenisResponden === 'Orang tua/wali siswa') badgeColor = 'bg-purple-50 text-purple-700 border border-purple-200';
+                if (row.jenisResponden === 'Guru') badgeColor = 'bg-amber-50 text-amber-700 border border-amber-200';
+
+                let setujuBadge = 'bg-emerald-100 text-emerald-800';
+                if (row.q2_setuju === 'Kurang setuju' || row.q2_setuju === 'Tidak setuju') setujuBadge = 'bg-rose-100 text-rose-800';
+
+                const dateStr = row.createdAt ? new Date(row.createdAt.toDate ? row.createdAt.toDate() : row.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="px-4 py-3 font-medium text-slate-500">${idx + 1}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-slate-500">${dateStr}</td>
+                        <td class="px-4 py-3 font-semibold text-slate-900">${escapeHtml(row.nama)}</td>
+                        <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-md text-[11px] font-medium ${badgeColor}">${escapeHtml(row.jenisResponden)}</span></td>
+                        <td class="px-4 py-3 text-slate-700">${escapeHtml(row.detailIdentitas)}</td>
+                        <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-md text-[11px] font-semibold ${setujuBadge}">${escapeHtml(row.q2_setuju)}</span></td>
+                        <td class="px-4 py-3 text-slate-600 max-w-xs truncate" title="${escapeHtml(row.q4_aturan)}">${escapeHtml(row.q4_aturan)}</td>
+                        <td class="px-4 py-3 text-slate-600 max-w-xs truncate" title="${escapeHtml(row.q8_saran || '-')}">${escapeHtml(row.q8_saran || '-')}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterTable() {
+            const query = document.getElementById('tableSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#responseTableBody tr');
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        function downloadExcelReport() {
+            const data = window.getResponsesData ? window.getResponsesData() : [];
+
+            if (data.length === 0) {
+                showToast("Tidak ada data untuk diunduh!", "error");
+                return;
+            }
+
+            const formattedData = data.map((d, i) => ({
+                "No": i + 1,
+                "Waktu Isian": d.createdAt ? new Date(d.createdAt.toDate ? d.createdAt.toDate() : d.createdAt).toLocaleString('id-ID') : '',
+                "Nama Lengkap": d.nama || '',
+                "Jenis Responden": d.jenisResponden || '',
+                "Kelas / Detail Identitas": d.detailIdentitas || '',
+                "1. Tahu Rencana": d.q1_mengetahui || '',
+                "2. Setuju Pembatasan HP": d.q2_setuju || '',
+                "3. Tingkatkan Konsentrasi": d.q3_konsentrasi || '',
+                "4. Penerapan Aturan": d.q4_aturan || '',
+                "5. Dukung HP Pembelajaran": d.q5_pembelajaran || '',
+                "6. Manfaat Utama": Array.isArray(d.q6_manfaat) ? d.q6_manfaat.join('; ') : (d.q6_manfaat || ''),
+                "7. Kendala/Kekhawatiran": d.q7_kendala || '',
+                "8. Saran & Masukan": d.q8_saran || ''
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(formattedData);
+            
+            worksheet['!cols'] = [
+                { wch: 5 },
+                { wch: 18 },
+                { wch: 22 },
+                { wch: 18 },
+                { wch: 20 },
+                { wch: 15 },
+                { wch: 22 },
+                { wch: 20 },
+                { wch: 45 },
+                { wch: 22 },
+                { wch: 45 },
+                { wch: 35 },
+                { wch: 40 }
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Hasil Survei HP");
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `Rekapan_Survei_Pembatasan_HP_MAN3Indramayu_${todayStr}.xlsx`);
+
+            showToast("File Excel berhasil diunduh!", "success");
+        }
+
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const message = document.getElementById('toastMessage');
+
+            message.innerText = msg;
+            if (type === "success") {
+                icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+            } else if (type === "error") {
+                icon.className = "fa-solid fa-circle-xmark text-rose-400 text-lg";
+            } else {
+                icon.className = "fa-solid fa-circle-info text-sky-400 text-lg";
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
